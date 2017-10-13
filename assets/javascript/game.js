@@ -300,15 +300,14 @@ function determineMove() {
 
 	function possibleMove(x, y, type, color) {
 
-		/* takes x/y position of possible move
-		type of check (row, col, diagU, DiagD) 
-		color of player (red, black) */
+		/* x/y = position of possible move
+			type = type of check (row, col, diagU, DiagD) 
+			color = color of player (red, black) */
 
 		/* set possible grid position to color we want to check */
 		possGrid[x][y] = color[0];
 
 		console.log(JSON.stringify(possGrid));
-		console.log(possGrid[x][y]);
 		console.log(`x: ${x}  y: ${y}`);
 
 		var moves = new MoveConstructor();
@@ -328,7 +327,6 @@ function determineMove() {
 				moves[color].in[type] += 1;
 				moves[color].poss[type] += 1;
 			} else if(currPosition === undefined) {
-				console.log("undefined");
 				moves[color].poss[type] += 1;
 			}else {
 				moves[color].in[type] = 0;
@@ -361,11 +359,7 @@ function determineMove() {
 					}
 				}
 			}
-
-			console.log( JSON.stringify(moves[color]) )
 		}
-
-
 
 		/* revert possible move to null */
 		possGrid[x][y] = null;
@@ -375,14 +369,12 @@ function determineMove() {
 
 
 	/* loop through possible moves array */
-	for(var i = 0; i <= 0; i += 1) {
+	for(var i = 0; i <= 5; i += 1) {
 		/* only process if column isn't full */
 		if(ai.possMoves[i] < 6) {
 			/* get x and y coords */
 			var x = i;
 			var y = ai.possMoves[i];
-
-			console.log("possible move -> X: "+x+" Y: "+y);
 
 			possibleMove(x, y, "row", "red");
 			//possibleMove(x, y, "col", "red");
