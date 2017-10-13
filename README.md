@@ -1,1 +1,1 @@
-# connect4-cpu
+# Connect4
