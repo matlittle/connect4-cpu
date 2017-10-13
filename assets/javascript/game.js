@@ -93,8 +93,6 @@ function addPiece(x,y) {
 
 // Function to check if the game is won
 function winCheck(x, y) {
-	//console.log(x);
-	//console.log(y);
 	// row and column check
 	var row = 0, column = 0;
 	for(var i = 0; i <= 5; i += 1) {
@@ -240,6 +238,16 @@ var ai = {
 		possTwo: [0,0,0,0,0,0],
 		possThree: [0,0,0,0,0,0],
 		possFour: [0,0,0,0,0,0]
+	},
+	redBlocks: {
+		possTwo: [0,0,0,0,0,0],
+		possThree: [0,0,0,0,0,0],
+		possFour: [0,0,0,0,0,0]
+	},
+	redAfter: {
+		possTwo: [0,0,0,0,0,0],
+		possThree: [0,0,0,0,0,0],
+		possFour: [0,0,0,0,0,0]
 	}
 }
 
@@ -256,8 +264,18 @@ function determineMove() {
 			possTwo: [0,0,0,0,0,0],
 			possThree: [0,0,0,0,0,0],
 			possFour: [0,0,0,0,0,0]
-		},
+		}
 		ai.black = {
+			possTwo: [0,0,0,0,0,0],
+			possThree: [0,0,0,0,0,0],
+			possFour: [0,0,0,0,0,0]
+		}
+		ai.redBlocks = {
+			possTwo: [0,0,0,0,0,0],
+			possThree: [0,0,0,0,0,0],
+			possFour: [0,0,0,0,0,0]
+		}
+		ai.redAfter = {
 			possTwo: [0,0,0,0,0,0],
 			possThree: [0,0,0,0,0,0],
 			possFour: [0,0,0,0,0,0]
@@ -295,78 +313,236 @@ function determineMove() {
 				diagU: 0
 			}
 		}
+		this.redBlocks = {
+			in: {
+				row: 0, 
+				col: 0, 
+				diagD: 0, 
+				diagU: 0
+			},
+			poss: {
+				row: 0, 
+				col: 0, 
+				diagD: 0, 
+				diagU: 0
+			}
+		}
+		this.redAfter = {
+			in: {
+				row: 0, 
+				col: 0, 
+				diagD: 0, 
+				diagU: 0
+			},
+			poss: {
+				row: 0, 
+				col: 0, 
+				diagD: 0, 
+				diagU: 0
+			}
+		}
 	}
 
 
-	function possibleMove(x, y, type, color) {
+	function possibleStraightMove(x, y, color) {
 
-		/* x/y = position of possible move
-			type = type of check (row, col, diagU, DiagD) 
-			color = color of player (red, black) */
+		/* x/y = position of possible move */
+		/* type = type of check (row, col) */
+		/* color = color of player (red, black) */
 
 		/* set possible grid position to color we want to check */
-		possGrid[x][y] = color[0];
+		if(color !== "redBlocks") {
+			possGrid[x][y] = color[0];
+		}
+		
+		if(color === "black" && y < 5 ) {
+			possibleStraightMove(x, y+1, "redAfter");
+			possibleDiagMove(x, y+1, "redAfter");
 
-		console.log(JSON.stringify(possGrid));
-		console.log(`x: ${x}  y: ${y}`);
+			possibleStraightMove(x, y, "redBlocks");
+			possibleDiagMove(x, y, "redBlocks");
+		}
 
-		var moves = new MoveConstructor();
+		types = ["row", "col"];
 
-		for(var i = 0; i <= 5; i += 1) {
+		types.forEach(function(type) {
 
-			if(type === "row") {
-				var currPosition = possGrid[i][y];
-			}else if(type === "col") {
-				var currPosition = possGrid[x][i];
-			}
+			var moves = new MoveConstructor();
 
-			/* loop through check, increment "in" and "poss" moves where the current 
-			color is found in that position. Increment only "poss" moves when the position
-			is blank. Reset "in" and "poss" moves when the alternate color is found */
-			if(currPosition === color[0]) {
-				moves[color].in[type] += 1;
-				moves[color].poss[type] += 1;
-			} else if(currPosition === undefined) {
-				moves[color].poss[type] += 1;
-			}else {
-				moves[color].in[type] = 0;
-				moves[color].poss[type] = 0;
-			}
+			for(var i = 0; i <= 5; i += 1) {
 
-			/* if there's a possibility of four moves in a row, increment the appropriate 
-			ai array to show that the current color played at this position would result 
-			in a "possible nth number" in a row */
-			if(moves[color].poss[type] === 4) {
-				if(moves[color].in[type] === 2){
-					ai[color].possTwo[x] += 1;
-				}else if(moves[color].in[type] === 3) {
-					ai[color].possThree[x] += 1;
-				}else if(moves[color].in[type] === 4) {
-					ai[color].possFour[x] += 1;
+				if(type === "row") {
+					var currPosition = possGrid[i][y];
+				}else if(type === "col") {
+					var currPosition = possGrid[x][i];
 				}
 
-				/* decrement "possible" moves by 1 if it's equal to 4*/
-				moves[color].poss[type] -= 1;
+				/* loop through check, increment "in" and "poss" moves where the current color is found in that position. Increment only "poss" moves when the positionis blank. Reset "in" and "poss" moves when the alternate color is found */
+				if(currPosition === color[0]) {
+					moves[color].in[type] += 1;
+					moves[color].poss[type] += 1;
+				} else if(currPosition == undefined) {
+					moves[color].poss[type] += 1;
+				}else {
+					moves[color].in[type] = 0;
+					moves[color].poss[type] = 0;
+				}
 
-				/* only decrement "in" moves if the previous 4th position was that color */
-				if(type === "row") {
-					if(possGrid[i-3][y] === color[0]) {
-						moves[color].in[type] -= 1;
+				/* if there's a possibility of four moves in a row, increment the appropriate ai array to show that the current color played at this position would result in a "possible nth number" in a row */
+				if(moves[color].poss[type] === 4) {
+					if(moves[color].in[type] === 2){
+						ai[color].possTwo[x] += 1;
+					}else if(moves[color].in[type] === 3) {
+						ai[color].possThree[x] += 1;
+					}else if(moves[color].in[type] === 4) {
+						ai[color].possFour[x] += 1;
 					}
-				} else if(type === "col") {
-					if(possGrid[x][i-3] === color[0]) {
-						moves[color].in[type] -= 1;
+
+					/* decrement "possible" moves by 1 if it's equal to 4*/
+					moves[color].poss[type] -= 1;
+
+					/* only decrement "in" moves if the previous 4th position was that color */
+					if(type === "row") {
+						if(possGrid[i-3][y] === color[0]) {
+							moves[color].in[type] -= 1;
+						}
+					} else if(type === "col") {
+						if(possGrid[x][i-3] === color[0]) {
+							moves[color].in[type] -= 1;
+						}
 					}
+				}
+			}
+
+		});
+
+		/* revert possible move to null */
+		if(color !== "redBlocks") {
+			possGrid[x][y] = null;
+		}
+	}
+
+	function possibleDiagMove(x, y, color) {
+
+		/* set possible grid position to color we want to check */
+		if(color !== "redBlocks") {
+			possGrid[x][y] = color[0];
+		}
+
+		var lx = x, ly = y, hx = x, hy = y;
+
+		/* check validity for diag up check */
+		while(lx > 0 && ly > 0) {
+			lx -= 1;
+			ly -= 1;
+		}
+		if(lx <= 2 && ly <= 2){
+			processMove(lx, ly, "diagU", x);
+		}
+
+		/* check validity for diag down check */
+		while(hx > 0 && hy < 5) {
+			hx -= 1;
+			hy += 1;
+		}
+		if(hx <= 2 && hy >= 3){
+			processMove(hx, hy, "diagD", x);
+		}
+
+		if(color !== "redBlocks") {
+			possGrid[x][y] = null;
+		}
+		
+		function processMove(x, y, type, ox) {
+
+			var moves = new MoveConstructor();
+
+			/* check for diag moving up from low coords, keep performing while not at the right edge or top*/	
+			while(x <= 5 && (y <= 5 && y >=0)) {
+
+				currPosition = possGrid[x][y];
+
+				/* loop through check, increment "in" and "poss" moves where the current color is found in that position. Increment only "poss" moves when the position is blank. Reset "in" and "poss" moves when the alternate color is found */
+				if(currPosition === color[0]) {
+					moves[color].in[type] += 1;
+					moves[color].poss[type] += 1;
+				} else if(currPosition == undefined) {
+					moves[color].poss[type] += 1;
+				}else {
+					moves[color].in[type] = 0;
+					moves[color].poss[type] = 0;
+				}
+
+
+				/* if there's a possibility of four moves in a row, increment the appropriate ai array to show that the current color played at this position would result in a "possible nth number" in a row */
+				if(moves[color].poss[type] === 4){
+					if(moves[color].in[type] === 2){
+						ai[color].possTwo[ox] += 1;
+					}else if(moves[color].in[type] === 3) {
+						ai[color].possThree[ox] += 1;
+					}else if(moves[color].in[type] === 4) {
+						ai[color].possFour[ox] += 1;
+					}
+
+					/* decrement "possible" moves by 1 if it's equal to 4*/
+					moves[color].poss[type] -= 1;
+
+					/* only decrement "in" moves if the previous 4th position was that color */
+					if(type === "diagU") {
+						if(possGrid[x-3][y-3] === color[0]) {
+							moves[color].in[type] -= 1;
+						}
+					} else if(type === "diagD") {
+						if(possGrid[x-3][y+3] === color[0]) {
+							moves[color].in[type] -= 1;
+						}
+					}
+				}
+
+
+				/* increment/decrement x and y based on type of check */
+				if(type === "diagU"){
+					x += 1;
+					y += 1;
+				} else if (type === "diagD") {
+					x += 1;
+					y -= 1;
 				}
 			}
 		}
-
-		/* revert possible move to null */
-		possGrid[x][y] = null;
-
-		console.log(JSON.stringify(ai[color]));
 	}
 
+
+	function weighPossibleMoves() {
+		var totalWeight = [0,0,0,0,0,0];
+
+
+		for(var i = 0; i < totalWeight.length; i += 1) {
+
+			for(var color in ai) {
+				if(color === "red") {
+					totalWeight[i] -= ai[color].possTwo[i];
+					totalWeight[i] -= ai[color].possThree[i] * 5;
+					totalWeight[i] -= ai[color].possFour[i] * 100;
+				} else if(color === "black") {
+					totalWeight[i] += ai[color].possTwo[i];
+					totalWeight[i] += ai[color].possThree[i] * 5;
+					totalWeight[i] += ai[color].possFour[i] * 1000;
+				} else if(color === "redBlocks") {
+					totalWeight[i] += (ai.red.possTwo[i] - ai[color].possTwo[i]);
+					totalWeight[i] += (ai.red.possThree[i] - ai[color].possThree[i]) * 10;
+					totalWeight[i] += (ai.red.possFour[i] - ai[color].possFour[i]) * 500;
+				} else if(color === "redAfter") {
+					totalWeight[i] -= ai[color].possTwo[i];
+					totalWeight[i] -= ai[color].possThree[i] * 5;
+					totalWeight[i] -= ai[color].possFour[i] * 1000;
+				}
+			}
+
+		}
+
+		console.log(JSON.stringify(totalWeight));
+	}
 
 	/* loop through possible moves array */
 	for(var i = 0; i <= 5; i += 1) {
@@ -376,9 +552,20 @@ function determineMove() {
 			var x = i;
 			var y = ai.possMoves[i];
 
-			possibleMove(x, y, "row", "red");
-			//possibleMove(x, y, "col", "red");
+			possibleStraightMove(x, y, "red");
+			possibleStraightMove(x, y, "black");
+
+			possibleDiagMove(x, y, "red");
+			possibleDiagMove(x, y, "black");
 
 		}
+
 	}
+	console.log("Red:       "+JSON.stringify(ai.red));
+	console.log("Black:     "+JSON.stringify(ai.black));
+	console.log("RedBlocks: "+JSON.stringify(ai.redBlocks));
+	console.log("RedAfter:  "+JSON.stringify(ai.redAfter));
+	console.log("-----------------------------------------------------------------------------");
+
+	weighPossibleMoves();
 }
