@@ -239,6 +239,8 @@ function resetGame() {
 	currentPlayer = "r";
 	gridMatrix = [[,,,,,],[,,,,,],[,,,,,],[,,,,,],[,,,,,],[,,,,,]];
 
+	ai.possMoves = [0,0,0,0,0,0];
+
 	$("#pageDiv").keyup(function() {
 		return;
 	});
@@ -251,8 +253,6 @@ function resetGame() {
 
 var ai = {
 	possMoves: [0,0,0,0,0,0],
-	threat: [0,0,0,0,0,0],
-	offense: [0,0,0,0,0,0],
 	red: {
 		possTwo: [0,0,0,0,0,0],
 		possThree: [0,0,0,0,0,0],
