@@ -16,9 +16,11 @@ function buildGrid() {
 	}
 
 	// Click event for entire grid to determine drop column
-	$(".cell").click(function() {
+	$(".cell").on("click", function() {
+		$(".cell").off('click');
+
 		cellClicked(this);
-	})
+	});
 
 	$("#pageDiv").keyup(function() {
 		return;
@@ -30,6 +32,7 @@ buildGrid();
 // Function to toggle active player
 var currentPlayer = "r";
 var redWins = 0, blackWins = 0;
+var processingClick = false;
 
 function togglePlayer() {
 	if(currentPlayer === "r") {
@@ -37,6 +40,8 @@ function togglePlayer() {
 		$("#player").css("background-color","black");
 		$("#currPlayer").text("Black");
 		$("#board").css("border-bottom","10px solid black");
+
+		cpuMove();
 		
 	} else if(currentPlayer === "b") {
 		currentPlayer = "r";
@@ -63,6 +68,28 @@ function cellClicked(cell) {
 	return;
 }
 
+
+// Function to determine cpu move
+function cpuMove() {
+
+	var xPos = determineMove();
+	var yPos = ai.possMoves[xPos];
+
+	setTimeout(function() {
+		addPiece(xPos, yPos);
+
+		setTimeout(function() {
+			$(".cell").on("click", function() {
+				$(".cell").off('click');
+
+				cellClicked(this);
+			});
+		}, 100);
+		
+	}, 1000 * 1);
+
+}
+
 // Populate piece color
 function addPiece(x,y) {
 	var currentCell = $(".cell[x='"+x+"'][y='"+y+"']");
@@ -78,9 +105,6 @@ function addPiece(x,y) {
 
 	// update possible moves array
 	ai.possMoves[x] += 1;
-
-	determineMove();
-
 
 	if(winCheck(x,y)) {
 		console.log("win");
@@ -514,34 +538,56 @@ function determineMove() {
 
 
 	function weighPossibleMoves() {
-		var totalWeight = [0,0,0,0,0,0];
+		var weight = [0,0,0,0,0,0];
 
 
-		for(var i = 0; i < totalWeight.length; i += 1) {
+		for(var i = 0; i < weight.length; i += 1) {
 
 			for(var color in ai) {
 				if(color === "red") {
-					totalWeight[i] -= ai[color].possTwo[i];
-					totalWeight[i] -= ai[color].possThree[i] * 5;
-					totalWeight[i] -= ai[color].possFour[i] * 100;
+					
+					weight[i] -= ai[color].possTwo[i];
+					weight[i] -= ai[color].possThree[i] * 10;
+					weight[i] -= ai[color].possFour[i] * 100;
+
 				} else if(color === "black") {
-					totalWeight[i] += ai[color].possTwo[i];
-					totalWeight[i] += ai[color].possThree[i] * 5;
-					totalWeight[i] += ai[color].possFour[i] * 1000;
+					
+					weight[i] += ai[color].possTwo[i];
+					weight[i] += ai[color].possThree[i] * 10;
+					weight[i] += ai[color].possFour[i] * 1000;
+
 				} else if(color === "redBlocks") {
-					totalWeight[i] += (ai.red.possTwo[i] - ai[color].possTwo[i]);
-					totalWeight[i] += (ai.red.possThree[i] - ai[color].possThree[i]) * 10;
-					totalWeight[i] += (ai.red.possFour[i] - ai[color].possFour[i]) * 500;
+					
+					weight[i] += ((ai.red.possTwo[i] * 2) - ai[color].possTwo[i]);
+					weight[i] += (ai.red.possThree[i] - ai[color].possThree[i]) * 20;
+					weight[i] += (ai.red.possFour[i] - ai[color].possFour[i]) * 500;
+
 				} else if(color === "redAfter") {
-					totalWeight[i] -= ai[color].possTwo[i];
-					totalWeight[i] -= ai[color].possThree[i] * 5;
-					totalWeight[i] -= ai[color].possFour[i] * 1000;
+					
+					weight[i] -= ai[color].possTwo[i];
+					weight[i] -= ai[color].possThree[i] * 15;
+					weight[i] -= ai[color].possFour[i] * 1000;
+
 				}
 			}
-
 		}
 
-		console.log(JSON.stringify(totalWeight));
+		/* favor moves in middle two columns */
+		weight[3] += 2;
+		weight[4] += 2;
+
+		/* get rid of invalid moves */
+		for (var i = 0; i < ai.possMoves.length; i += 1) {
+			if (ai.possMoves[i] === 6) {
+				weight[i] -= 5000;
+			}
+		}
+
+
+		var heighest = Math.max(...weight);
+		var position = weight.indexOf(heighest);
+
+		return position;
 	}
 
 	/* loop through possible moves array */
@@ -561,11 +607,14 @@ function determineMove() {
 		}
 
 	}
-	console.log("Red:       "+JSON.stringify(ai.red));
-	console.log("Black:     "+JSON.stringify(ai.black));
-	console.log("RedBlocks: "+JSON.stringify(ai.redBlocks));
-	console.log("RedAfter:  "+JSON.stringify(ai.redAfter));
-	console.log("-----------------------------------------------------------------------------");
 
-	weighPossibleMoves();
+	/*console.log("Red:       "+JSON.stringify(ai.red));*/
+	/*console.log("Black:     "+JSON.stringify(ai.black));*/
+	/*console.log("RedBlocks: "+JSON.stringify(ai.redBlocks));*/
+	/*console.log("RedAfter:  "+JSON.stringify(ai.redAfter));*/
+	/*console.log("----------------------------------------");*/
+
+	var nextMove = weighPossibleMoves();
+
+	return nextMove;
 }
