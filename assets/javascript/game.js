@@ -110,9 +110,25 @@ function addPiece(x,y) {
 		console.log("win");
 		updateScore();
 		promptWin();
+	} else if(fullBoard()) {
+		promptTie();
 	} else {
 		togglePlayer();
 	}
+}
+
+// Function to check if the board is full
+function fullBoard() {
+	var full = true;
+	
+	ai.possMoves.forEach(function(move) {
+		console.log(move);
+		if(move < 5) {
+			full = false;
+		}
+	});
+
+	return full;
 }
 
 // Function to check if the game is won
@@ -209,6 +225,33 @@ function promptWin() {
 	} else {
 		var winText = $("<h1>").attr("id","winText").text("Black Wins!");
 	}
+
+	var keyDiv = $("<p>").attr("id","keyDiv");
+
+	var pressKey = "Press Any Key to Play Again";
+
+	$(winDiv).append(winText);
+	$(winDiv).append("<br>");
+	$(keyDiv).append(pressKey);
+	$(winDiv).append(keyDiv);
+	$(pageDiv).append(winDiv);
+
+	$("#board").append(pageDiv);
+
+	$("#pageDiv").keyup(function() {
+		resetGame();
+	});
+
+	$("#pageDiv").click(function() {
+		resetGame();
+	})
+}
+
+function promptTie() {
+	var pageDiv = $("<div>").attr("id","pageDiv");
+	var winDiv = $("<div>").attr("id", "winDiv");
+
+	var winText = $("<h1>").attr("id","winText").text("Tie!");
 
 	var keyDiv = $("<p>").attr("id","keyDiv");
 
@@ -591,6 +634,9 @@ function determineMove() {
 		var heighest = Math.max(...weight);
 		var position = weight.indexOf(heighest);
 
+		console.log(JSON.stringify(weight));
+		console.log("----------------------------------------");
+
 		return position;
 	}
 
@@ -612,11 +658,11 @@ function determineMove() {
 
 	}
 
-	/*console.log("Red:       "+JSON.stringify(ai.red));*/
-	/*console.log("Black:     "+JSON.stringify(ai.black));*/
-	/*console.log("RedBlocks: "+JSON.stringify(ai.redBlocks));*/
-	/*console.log("RedAfter:  "+JSON.stringify(ai.redAfter));*/
-	/*console.log("----------------------------------------");*/
+	console.log("Red:       "+JSON.stringify(ai.red));
+	console.log("Black:     "+JSON.stringify(ai.black));
+	console.log("RedBlocks: "+JSON.stringify(ai.redBlocks));
+	console.log("RedAfter:  "+JSON.stringify(ai.redAfter));
+	console.log("----------------------------------------");
 
 	var nextMove = weighPossibleMoves();
 
