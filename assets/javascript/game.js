@@ -237,6 +237,10 @@ function resetGame() {
 	buildGrid();
 
 	currentPlayer = "r";
+	$("#player").css("background-color","red");
+	$("#currPlayer").text("Red");
+	$("#board").css("border-bottom","10px solid red");
+
 	gridMatrix = [[,,,,,],[,,,,,],[,,,,,],[,,,,,],[,,,,,],[,,,,,]];
 
 	ai.possMoves = [0,0,0,0,0,0];
